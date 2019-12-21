@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+    <title>Hello Tetris</title>
+    <script src="./js/react.development.js"></script>
+    <script src="./js/react-dom.development.js"></script>
+    <script src="./js/immer.umd.js"></script>
+    <script src="./js/redux.js"></script>
+    <script src="./js/react-redux.js"></script>
+    <!-- Don't use js/this in production: -->
+    <script src="./js/babel.min.js"></script>
+</head>
+<style>
+    /* body{
+      background-image: url('https://source.unsplash.com/random/3840x2160');
+      background-size:cover;
+    } */
+    
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        touch-action: manipulation !important;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+    
+    #root {
+        height: 100%;
+        width: 100%;
+    }
+    
+    .tetris {
+        width: 380px;
+        height: 468px;
+        padding: 8px;
+        background: rgb(158, 173, 134);
+        border: 2px solid #494536;
+        display: flex
+    }
+    
+    .button {
+        position: absolute;
+        right: 0;
+    }
+    
+    .tetris-playground-container {}
+    
+    .tetris-status-container {
+        flex-grow: 1;
+        font-size: 23px;
+        font-weight: bold;
+        padding-left: 20px;
+        position: relative;
+    }
+    
+    .tetris-status-container span {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 10px
+    }
+    
+    .tetris-status {
+        position: absolute;
+        bottom: 15px
+    }
+    
+    .tetris-score-container {
+        margin-top: 30px;
+    }
+    
+    .tetris-score {
+        height: 24px;
+        padding-left: 15px;
+    }
+    
+    .tetris-playground {
+        margin: 0 auto;
+        width: 228px;
+        padding: 8px;
+        padding: 3px 1px 1px 3px;
+        border: 2px solid #000;
+    }
+    
+    .tetris-nextBlock-container {
+        margin-top: 90px;
+    }
+    
+    .tetris-nextBlock {
+        margin: 0 auto;
+        width: 100px;
+        height: 50px;
+        padding: 2px;
+        padding-left: 10px;
+    }
+    
+    .tetris-row {
+        display: flex;
+        width: 220px;
+        height: 22px;
+    }
+    
+    .tetris-block {
+        box-sizing: border-box;
+        width: 20px;
+        height: 20px;
+        sborder-radius: 6px;
+        margin: 0 2px 2px 0;
+        padding: 2px;
+        border: 2px solid #879372;
+        ;
+        background-color: transparent;
+    }
+    
+    .tetris-block::before {
+        content: "";
+        display: block;
+        width: 12px;
+        height: 12px;
+        background: #879372;
+        overflow: hidden;
+    }
+    
+    .tetris-block.fill {
+        border-color: black;
+    }
+    
+    .tetris-block.fill::before {
+        background-color: black;
+    }
+    
+    .screen-conrtainer {
+        width: 390px;
+        height: 478px;
+        border: 5px solid;
+        border-color: #987f0f #fae36c #fae36c #987f0f;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .screen-box {
+        width: 480px;
+        padding: 45px 0 35px;
+        border: solid #000;
+        border-width: 0 10px 10px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .game-box {
+        position: absolute;
+        width: 640px;
+        padding-top: 42px;
+        box-shadow: inset 0 0 10px #fff;
+        border-radius: 20px;
+        margin: 0 auto;
+        top: 50%;
+        left: 50%;
+        background: #efcc19;
+        margin: -480px 0 0 -320px;
+    }
+    
+    .bthControl {
+        text-align: center;
+        color: #111;
+        position: absolute;
+        white-space: nowrap;
+        line-height: 1.6;
+        cursor: pointer;
+    }
+    
+    .bthControl i {
+        height: 100px;
+        width: 100px;
+        display: block;
+        position: relative;
+        border: 1px solid #000;
+        border-radius: 50%;
+        box-shadow: 0 3px 3px rgba(0, 0, 0, .2);
+        background-color: #5a65f1;
+    }
+    
+    .bthControl i::before {
+        content: "";
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
+        box-shadow: inset 0 5px 10px hsla(0, 0%, 100%, .8);
+    }
+    
+    .bthControl:active i::before {
+        box-shadow: inset 0 -3px 6px hsla(0, 0%, 100%, .6);
+    }
+    
+    .bthControl:active i::after {
+        box-shadow: inset 0 5px 5px rgba(0, 0, 0, .6);
+    }
+    
+    .bthControl i::after {
+        content: "";
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
+        box-shadow: inset 0 -5px 10px rgba(0, 0, 0, .8);
+    }
+    
+    .game-buttons {
+        width: 580px;
+        height: 330px;
+        margin: 20px auto 0;
+        position: relative;
+        z-index: -1;
+    }
+    
+    .game-buttons-control {
+        width: 580px;
+        height: 330px;
+        position: absolute;
+        left: -100px;
+        top: 530px;
+    }
+    
+    .bthControl.top {
+        position: absolute;
+        right: 100px;
+    }
+    
+    .bthControl.right {
+        position: absolute;
+        top: 100px;
+        right: 0px;
+    }
+    
+    .bthControl.bottom {
+        position: absolute;
+        top: 200px;
+        right: 100px;
+    }
+    
+    .bthControl.left {
+        position: absolute;
+        top: 100px;
+        right: 200px;
+    }
+    
+    .bthControl.space i {
+        height: 160px;
+        width: 160px;
+    }
+    
+    .bthControl.space {
+        position: absolute;
+        top: 110px;
+        left: 50px;
+    }
+    
+    .bthControl.reset {
+        position: absolute;
+        top: 0px;
+        left: 150px;
+    }
+    
+    .bthControl.reset i {
+        height: 52px;
+        width: 52px;
+        background-color: #dd1a1a;
+    }
+    
+    .bthControl.pause {
+        position: absolute;
+        top: 0px;
+        left: 70px;
+    }
+    
+    .bthControl.pause i {
+        height: 52px;
+        width: 52px;
+        background-color: #2dc421;
+    }
+    
+    .bthControl.pause span,
+    .bthControl.reset span {}
+    
+    .tertis-title {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        top: 0;
+    }
+    
+    .tertis-title span {
+        display: block;
+        width: 10px;
+        height: 10px;
+        overflow: hidden;
+        background: #000;
+    }
+    
+    .tertis-title .left-point {
+        margin-left: 10px;
+    }
+    
+    .tertis-title .left-point:nth-of-type(1) {
+        margin-left: 0px;
+        width: 40px;
+    }
+    
+    .tertis-title .right-point {
+        margin-right: 10px;
+    }
+    
+    .tertis-title .right-point:nth-of-type(6) {
+        margin-right: 0px;
+        width: 40px;
+    }
+    
+    .tertis-title h1 {
+        display: block;
+        text-align: center;
+        position: absolute;
+        top: -18px;
+        width: 100%;
+    }
+    
+    .l {
+        float: left
+    }
+    
+    .r {
+        float: right;
+    }
+    
+    .num {
+        background-image: url('./tetris-source.png');
+        width: 14px;
+        height: 24px;
+    }
+    
+    .num-0.dark {
+        background-position: -215px -25px;
+    }
+    
+    .num-0.high-light {
+        background-position: -75px -25px;
+    }
+    
+    .num-1 {
+        background-position: -89px -25px;
+    }
+    
+    .num-2 {
+        background-position: -103px -25px;
+    }
+    
+    .num-3 {
+        background-position: -117px -25px;
+    }
+    
+    .num-4 {
+        background-position: -131px -25px;
+    }
+    
+    .num-5 {
+        background-position: -145px -25px;
+    }
+    
+    .num-6 {
+        background-position: -159px -25px;
+    }
+    
+    .num-7 {
+        background-position: -173px -25px;
+    }
+    
+    .num-8 {
+        background-position: -187px -25px;
+    }
+    
+    .num-9 {
+        background-position: -201px -25px;
+    }
+    
+    .pauseIcon {
+        width: 20px;
+        height: 18px;
+        margin-right: 15px;
+        margin-top: 3px;
+    }
+    
+    .pauseIcon.dark {
+        background-position: -100px -75px;
+    }
+    
+    .pauseIcon.high-light {
+        background-position: -75px -75px;
+    }
+    
+    .colon.dark {
+        background-position: -243px -25px;
+    }
+    
+    .colon.high-light {
+        background-position: -229px -25px;
+    }
+</style>
+
+<body>
+    <div id="root"></div>
+    <div class="num num-0"></div>
+    <script type="text/babel">
+        const { useState , useEffect , useContext , useCallback,useMemo} = React const { produce } = immer const { connect,Provider } = ReactRedux var state ={ tetrisMap : [ [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], ], blockMap : { pLast:[-3,3], p:[-3,3], s:[[0,0,0,0],[1,0,0,0], [1,1,1,0],[0,0,0,0]], t:0, b:0, size:[0,0,0,0] }, nextBlock:{ pLast:[-3,3],
+        p:[-3,3], s:[[0,0,0,0],[1,0,0,0], [1,1,1,0],[0,0,0,0]], t:0, b:0, size:[0,0,0,0] }, score:0, isPause:false } var mutations = { newBlock : produce((state,action)=>{ let b = action.block // state.tetrisMap[0].splice(3,4,...b[0]) // state.tetrisMap[1].splice(3,4,...b[1])
+        state.blockMap = b }), newNextBlock : produce((state,action)=>{ state.nextBlock = action.block }), changeType:produce((state,action)=>{ let s = action.s let t = action.t let size = action.size state.blockMap.s = s state.blockMap.t = t state.blockMap.size
+        = size }), setScore:produce((state,action)=>{ state.score += action.l*100 }), setPause:produce((state,action)=>{ state.isPause = !state.isPause }), setBlock: produce((state,action)=>{ state.blockMap.pLast = action.pLast if(action.direction ==
+        'l'){ state.blockMap.p[1] -- }else if(action.direction == 'r'){ state.blockMap.p[1] ++ }else if(action.direction == 'd'){ state.blockMap.p[0] ++ } }), setFallBlock:produce((state,action)=>{ state.blockMap.p = action.p }), setTetrisMap:produce((state,action)=>{
+        state.tetrisMap = action.m }), changeBlock:produce((state,action)=>{ state.blockMap = action.b }), init:produce((state,action)=>{ state.tetrisMap = [ [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], ] state.blockMap = { pLast:[-3,3], p:[-3,3], s:[[0,0,0,0],[1,0,0,0], [1,1,1,0],[0,0,0,0]], t:0, b:0, size:[0,0,0,0] } state.isPause = false state.score
+        = 0 // state.nextBlock = { // nextBlock:{ // pLast:[0,3], // p:[0,3], // s:[[0,0,0,0],[1,0,0,0], // [1,1,1,0],[0,0,0,0]], // t:0, // b:0, // size:[0,0,0,0] // } // } }) } var store = Redux.createStore((state,action)=>{ var mutation = mutations[action.type]
+        if(mutation){ return mutation(state,action) }else{ return state } },state) store.subscribe(()=>{ //console.log(1) }) var Tetris = connect( state =>{ return { } }, dispatch=>{ return { newBlock:(b)=>{ dispatch({type:'newBlock',block:b}) }, newNextBlock:(b)=>{
+        dispatch({type:'newNextBlock',block:b}) }, } } )( class Tetris extends React.Component{ constructor(props){ super(props) this.nextBlock = null this.newBlock() } newNextBlock = ()=>{ let newMap = this.getBlocks() this.props.newNextBlock(newMap)
+        console.log('new'); this.nextBlock = newMap } newBlock = ()=>{ this.nextBlock = this.getBlocks() this.props.newBlock(this.nextBlock) this.props.newNextBlock(this.nextBlock) } getBlocks = () => { let blocks = [ {list:[[0,0,0,0],[1,0,0,0],[1,1,1,0],[0,0,0,0]],size:[1,1,1,0]},
+        {list:[[0,0,0,0],[1,1,0,0],[0,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],size:[2,0,1,0]}, {list:[[0,0,0,0],[0,0,1,0],[1,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,0,0,0],[0,1,1,0],[1,1,0,0],[0,0,0,0]],size:[1,1,1,0]},
+        {list:[[0,0,0,0],[0,1,1,0],[0,1,1,0],[0,0,0,0]],size:[1,1,1,1]}, {list:[[0,0,0,0],[0,1,0,0],[1,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, ] let num = Math.floor(Math.random()*7) return { pLast:[-3,3], p:[-3,3], s:blocks[num].list, b:num, t:0, size:blocks[num].size
+        } } render(){ return (
+        <div className="tetris">
+            <TetrisPlayground newNextBlock={()=>{this.newNextBlock()}} newBlock = {()=>{this.newBlock()}}/>
+                <TetrisStatus/>
+        </div>
+        ) } } ) var TetrisPlayground = connect( state =>{ return { tetrisMap:state.tetrisMap, blockMap:state.blockMap, nextBlock:state.nextBlock, } }, dispatch=>{ return { // newBlock:(b)=>{ // dispatch({type:'newBlock',block:b}) // }, setBlock:(d,pLast)=>{ dispatch({type:'setBlock',direction
+        :d,pLast:pLast}) }, setFallBlock:(p)=>{ dispatch({type:'setFallBlock',p:p}) }, changeType:(s,t,size)=>{ dispatch({type:'changeType',s:s,t:t,size:size}) }, setTetrisMap:(m)=>{ dispatch({type:'setTetrisMap',m:m}) }, changeBlock:(b)=>{ dispatch({type:'changeBlock',b:b})
+        }, setScore:(l)=>{ dispatch({type:'setScore',l:l}) }, init:()=>{ dispatch({type:'init'}) }, setPause:()=>{ dispatch({type:'setPause'}) } } } )( class TetrisPlayground extends React.Component{ constructor(props){ super(props) console.log('ready')
+        this.addEventListener() this.fallInterval= null this.started = false //this.props.newBlock(this.props.nextBlock) } addEventListener = ()=>{ window.addEventListener('keydown',(e)=>{ e.preventDefault() console.log(e.which); if(e.which === 40||e.which
+        === 83){ //down this.setBlock(this.props.blockMap,'d') }else if(e.which === 39||e.which === 68){ //right this.setBlock(this.props.blockMap,'r') }else if(e.which === 38||e.which === 87){ //top this.changeType(this.props.blockMap) }else if(e.which
+        === 37||e.which === 65){ //left this.setBlock(this.props.blockMap,'l') }else if(e.which === 32){ //space this.spaceFall(this.props.blockMap) } }) } setBlock = (b,action)=>{ if(this.isLegal(b,action)){ this.props.setBlock(action,b.p) } } isLegal
+        = (blockMap,action)=>{ let startRow = blockMap.p[0] let startCol = blockMap.p[1] let s =blockMap.size //console.log('islegal',startRow,startCol,startCol+s[3],startCol+4-s[1]) if(action == 'l'){ if(startCol+s[3]-1
+        < 0) return false }else if(action=='r' ){ if((startCol+4-s[1])> 9) return false }else if(action == 'd'){ if((startRow+4-s[2]) > 19) { console.log('arrive') this.stopFall() return false } }else if(action == 't'){ } return true } initMap = ()=>{ this.pauseFall() this.props.init(); this.props.newBlock(); this.started
+            = true; } startFall =()=>{ if(this.fallInterval){ clearInterval(this.fallInterval) this.fallInterval = null } this.fallInterval = setInterval(() => { this.setBlock(this.props.blockMap,'d') }, 500); } spaceFall = (blockMap)=>{ let startRow
+            = blockMap.p[0] let startCol = blockMap.p[1] let bottomSpace = blockMap.size[2] let newMap = [] this.props.tetrisMap.forEach((row,rowIdx)=>{ let newRow = [] row.forEach((col,colIdx)=>{ newRow.push(col) }) newMap.push(newRow) }) var blockList
+            = ((b)=>{ let result = [] for(let i = 0;i
+            <4;i++){ for(let j=0 ;j<4;j++){ let n=b .s[i][j] if(n===1 ){ result.push([i,j]) } } } return result })(blockMap) console.log(blockList) for(var m=1 6+bottomSpace;m>startRow;m--){ var res = true for(var it of blockList){ if(newMap[m+it[0]][startCol+it[1]] == 1){ res = false break; } } if(res){ let p = [m,startCol] console.log(p) this.props.setFallBlock(p) return; } } } newNextBlock = () =>{ if(this.stopFall()){
+                this.props.changeBlock(this.props.nextBlock) this.props.newNextBlock() this.startFall() } } pauseFall = ()=>{ if(this.fallInterval){ clearInterval(this.fallInterval) this.fallInterval = null this.props.setPause() }else{ this.fallInterval
+                = setInterval(() => { this.setBlock(this.props.blockMap,'d') }, 500); this.props.setPause() } } stopFall = ()=>{ if(this.fallInterval){ clearInterval(this.fallInterval) this.fallInterval = null } let checkMap = this.isFillRow(this.mixedMap)
+                if(!checkMap){ alert('Game Over') this.started = false; this.initMap(); //this.props.setTetrisMap(this.mixedMap) return false } this.props.setTetrisMap(this.mixedMap) return true } isFillRow = (tetrisMap)=>{ let count = 0 for(let i = 19
+                ;i>=0;i--){ let have = tetrisMap[i].filter(it=>it==1).length if(have === 10){ console.log(have) count++ tetrisMap.splice(i,1) tetrisMap.unshift([0,0,0,0,0,0,0,0,0,0]) }else if(have === 0){ this.props.setScore(count) return true } } return
+                false } changeType =(blockMap)=>{ var typeList = [ [ {list:[[0,0,0,0],[1,0,0,0],[1,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,1,0,0],[0,1,0,0],[1,1,0,0],[0,0,0,0]],size:[0,2,1,0]}, {list:[[0,0,0,0],[1,1,1,0],[0,0,1,0],[0,0,0,0]],size:[1,1,1,0]},
+                {list:[[1,1,0,0],[1,0,0,0],[1,0,0,0],[0,0,0,0]],size:[0,2,1,0]}, ], [ {list:[[0,0,0,0],[1,1,0,0],[0,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,0,1,0],[0,1,1,0],[0,1,0,0],[0,0,0,0]],size:[0,1,1,1]}, ], [ {list:[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],size:[2,0,1,0]},
+                {list:[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],size:[0,1,0,2]}, ], [ {list:[[0,0,0,0],[0,0,1,0],[1,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,1,1,0],[0,0,1,0],[0,0,1,0],[0,0,0,0]],size:[0,1,1,1]}, {list:[[0,0,0,0],[1,1,1,0],[1,0,0,0],[0,0,0,0]],size:[1,1,1,0]},
+                {list:[[0,1,0,0],[0,1,0,0],[0,1,1,0],[0,0,0,0]],size:[0,1,1,1]}, ], [ {list:[[0,0,0,0],[0,1,1,0],[1,1,0,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[1,0,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],size:[0,2,1,0]}, ], [ {list:[[0,0,0,0],[0,1,1,0],[0,1,1,0],[0,0,0,0]],size:[1,1,1,1]},
+                ], [ {list:[[0,0,0,0],[0,1,0,0],[1,1,1,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,1,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],size:[0,2,1,0]}, {list:[[0,0,0,0],[1,1,1,0],[0,1,0,0],[0,0,0,0]],size:[1,1,1,0]}, {list:[[0,1,0,0],[0,1,1,0],[0,1,0,0],[0,0,0,0]],size:[0,1,1,1]},
+                ], ] var nowtype = blockMap.t nowtype++ //console.log(blockMap.b,nowtype,typeList[blockMap.b][nowtype]) if(!typeList[blockMap.b][nowtype]){ nowtype = 0 } let nowBlock = typeList[blockMap.b][nowtype].list let nowSize = typeList[blockMap.b][nowtype].size
+                let startRow = blockMap.p[0] let startCol = blockMap.p[1] //console.log(startRow-nowSize[2],startCol+4-nowSize[1],startCol+nowSize[3]) if( (startRow+3-nowSize[2])>19|| (startCol+3-nowSize[1])>9|| (startCol+nowSize[3])
+                <0 ){ console.log( 'out') return false } this.props.changeType(nowBlock,nowtype,nowSize) } mixMap=( m,b)=>{ let newMap = [] m.forEach((row,rowIdx)=>{ let newRow = [] row.forEach((col,colIdx)=>{ newRow.push(col) }) newMap.push(newRow) }) let startRow = b.p[0] let startCol = b.p[1] for(let i = 0;i
+                    <4;i++){ for(let j=0 ;j<4;j++){ if((startRow+i)<0) continue if((startRow+i)>19) continue if((startCol+j)>9) continue let o = newMap[startRow+i][startCol+j] let n = b.s[i][j] if(o === 1&&n === 1){ console.log('touch') this.newNextBlock() return this.mixedMap } if(o){ }else{ newMap[startRow+i][startCol+j] =
+                        n } } } //console.log('mixed') return newMap } render(){ this.mixedMap = this.mixMap(this.props.tetrisMap,this.props.blockMap) return (
+                        <div className="tetris-playground-container">
+                            <div className="tetris-playground">
+                                { this.mixedMap.map((row,rowIdx)=>
+                                <div className="tetris-row" key={rowIdx}>
+                                    { row.map((it,itIdx)=>
+                                    <BlockMemo key={ rowIdx+ ''+itIdx} isFill={ it }/> ) }
+                                </div>
+                                ) }
+                            </div>
+                            <div className="game-buttons-control ">
+                                { this.started?
+                                <div className="bthControl reset" onClick={ ()=>{this.started=false;this.initMap();}}><i/><span>restart</span></div>:
+                                <div className="bthControl reset" onClick={ ()=>{this.started=true;this.props.newNextBlock();this.startFall();}}><i/><span>start</span></div>
+                                }
+                                <div className="bthControl pause" onClick={()=>{if(this.started)this.pauseFall()}}><i/><span>pause</span></div>
+                                <div className="bthControl top" onClick={()=>{if(this.started)this.changeType(this.props.blockMap)}}><i/></div>
+                                <div className="bthControl right" onClick={()=>{if(this.started)this.setBlock(this.props.blockMap,'r')}}><i/></div>
+                                <div className="bthControl bottom" onClick={()=>{if(this.started)this.setBlock(this.props.blockMap,'d')}}><i/></div>
+                                <div className="bthControl left" onClick={()=>{if(this.started)this.setBlock(this.props.blockMap,'l')}}><i/></div>
+                                <div className="bthControl space" onClick={()=>{if(this.started)this.spaceFall(this.props.blockMap)}}><i/></div>
+                            </div>
+                        </div>
+                        ) } } ) const BlockMemo = React.memo(Block,(prevProps, nextProps)=>{ if(prevProps.isFill === nextProps.isFill){ return true }else{ return false } }) function Block(props){ return(
+                        <div className={ props.isFill? "tetris-block fill": "tetris-block"}>
+                        </div>
+                        ) } const TetrisStatus = connect( state =>{ return { nextBlock:state.nextBlock.s , score:state.score, isPause:state.isPause } }, dispatch=>{ return {} } )( function TetrisStatus(props){ console.log('next:',props.nextBlock) const nextBlock = [props.nextBlock[1],props.nextBlock[2]]
+                        return(
+                        <div className="tetris-status-container">
+                            <div className="tetris-score-container">
+                                <span>Score:</span>
+                                <Score score={props.score}/>
+                            </div>
+                            <div className="tetris-nextBlock-container">
+                                <span>Next:</span>
+                                <div className="tetris-nextBlock">
+                                    { nextBlock.map((row,rowIdx)=>
+                                    <div className="tetris-row" key={rowIdx+ "-"}>
+                                        { row.map((col,colIdx)=>
+                                        <BlockMemo key={ rowIdx+ '-'+colIdx} isFill={ col }></BlockMemo>
+                                        ) }
+                                    </div>
+                                    ) }
+                                </div>
+                            </div>
+                            <div className="tetris-status">
+                                <div className={ "l num pauseIcon "+(props.isPause? "high-light": "dark")}/>
+                                <TimeClock/>
+                            </div>
+                        </div>
+                        ) } ) function Score(props){ let score = props.score if(score > 999999){ score = 999999 } score = String(score).split('') let empty = new Array(6-score.length) empty.fill(0) return (
+                        <div className="tetris-score">
+                            { empty.map((it,idx)=>
+                            <div key={ "e-"+idx} className="l num num-0 dark" />) } { score.map((it,idx)=>
+                            <div key={ "s-"+idx} className={ "l num num-"+(it==0? "0 high-light":it)}/>) }
+                        </div>
+                        ) } function TimeClock(props){ let getDate = ()=>{ let nowDate = new Date() let hour = String(nowDate.getHours()).padStart(2,0) let minute = String(nowDate.getMinutes()).padStart(2,0) return hour+minute } const [nowDate,setNowDate] = useState(getDate())
+                        const [shake,setShake] = useState(false) useEffect(() => { setTimeout(() => { setNowDate(getDate()) setShake(!shake) }, 1000) return () => { }; }, [shake]) return(
+                        <div className="l">
+                            <div className={ 'l num num-'+ (nowDate[0]=='0' ? '0 dark':nowDate[0])}></div>
+                            <div className={ 'l num num-'+ (nowDate[1]=='0' ? '0 high-light':nowDate[1])}></div>
+                            <div className={shake? "l num colon dark": "l num colon high-light"}></div>
+                            <div className={ 'l num num-'+ (nowDate[2]=='0' ? '0 high-light':nowDate[2])}></div>
+                            <div className={ 'l num num-'+ (nowDate[3]=='0' ? '0 high-light':nowDate[3])}></div>
+                        </div>
+                        ) } function GameBox(){ // var lastTouchEnd = 0; // document.documentElement.addEventListener('touchend', function (event) { // var now = Date.now(); // if (now - lastTouchEnd
+                        <=3 00) { // event.preventDefault(); // } // lastTouchEnd=n ow; // }, false); let transformScale=w indow.innerHeight/960 if(window.innerHeight/window.innerWidth>1.5){ //let y = transformScale let x = window.innerWidth/640 transformScale = 'scale('+x+')' }else{ transformScale = 'scale('+transformScale+')' } return (
+                            <div className="game-box" style={{transform:transformScale}}>
+                                <div className="screen-box">
+                                    <div className="tertis-title">
+                                        <span className="l left-point"></span>
+                                        <span className="l left-point"></span>
+                                        <span className="l left-point"></span>
+                                        <span className="l left-point"></span>
+                                        <span className="l left-point"></span>
+                                        <span className="r right-point"></span>
+                                        <span className="r right-point"></span>
+                                        <span className="r right-point"></span>
+                                        <span className="r right-point"></span>
+                                        <span className="r right-point"></span>
+                                        <h1>Tetris</h1>
+                                    </div>
+                                    <div className="screen-conrtainer">
+                                        <Provider store={ store }>
+                                            <Tetris/>
+                                        </Provider>
+                                    </div>
+                                </div>
+                                <div className="game-buttons">
+                                </div>
+                            </div>
+                            ) } ReactDOM.render( (
+                            <GameBox/> ), document.getElementById('root') );
+    </script>
+    <!--
+      Note: this page is a great way to try React but it's not suitable for production.
+      It slowly compiles JSX with Babel in the browser and uses a large development build of React.
+
+      Read this section for a production-ready setup with JSX:
+      https://reactjs.org/docs/add-react-to-a-website.html#add-jsx-to-a-project
+
+      In a larger project, you can use an integrated toolchain that includes JSX instead:
+      https://reactjs.org/docs/create-a-new-react-app.html
+
+      You can also use React without JSX, in which case you can remove Babel:
+      https://reactjs.org/docs/react-without-jsx.html
+    -->
+</body>
+
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Hello Mine</title>
+    <script src="./js/react.development.js"></script>
+    <script src="./js/react-dom.development.js"></script>
+    <script src="./js/immer.umd.js"></script>
+    <!-- Don't use this in production: -->
+    <script src="./js/babel.min.js"></script>
+    <link href="https://emoji-css.afeld.me/emoji.css" rel="stylesheet">
+</head>
+
+<style>
+    .mineOne {
+        height: 20px;
+        width: 20px;
+        background-color: #ccc;
+        border-radius: 3px;
+        display: block;
+        margin: 2px;
+        cursor: pointer;
+    }
+    
+    .mineOne.flag {
+        background-color: red;
+    }
+    
+    .mineOne.flag:hover {
+        background-color: red;
+    }
+    
+    .mineOneClicked {
+        height: 20px;
+        width: 20px;
+        border-radius: 3px;
+        display: block;
+        margin: 2px;
+        background-color: #eee;
+        text-align: center;
+        user-select: none;
+    }
+    
+    .mineOne:hover {
+        background-color: #bbb;
+    }
+    
+    .mineRow {
+        display: flex;
+    }
+    
+    .mineState {
+        margin: 10px auto;
+        display: flex;
+        width: 160px;
+        height: 40px;
+        margin-top: 5%;
+        justify-content: space-between;
+    }
+    
+    .mineState .mineCount {
+        height: 40px;
+        width: 50px;
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 40px;
+        text-align: center;
+        background-color: #eee;
+        border-radius: 5px;
+    }
+    
+    .mineState .mineReset {
+        padding: 0;
+        outline: none;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 20px;
+    }
+    
+    .mineState .mineReset:hover {
+        background-color: #eee;
+    }
+    
+    .mineState .mineReset i {
+        width: 30px;
+        height: 30px;
+        margin: 5px;
+    }
+    
+    .mineState .mineReset i.em-hushed {
+        display: none;
+    }
+    
+    .mineState .mineReset:focus i.em-grinning {
+        display: none;
+    }
+    
+    .mineState .mineReset:focus i.em-hushed {
+        display: block;
+    }
+    
+    .mineState .timer {
+        height: 40px;
+        width: 50px;
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 40px;
+        text-align: center;
+        background-color: #eee;
+        border-radius: 5px;
+    }
+    
+    .mineList {
+        padding: 5px;
+        width: min-content;
+        background-color: rgba(244, 244, 244);
+        margin: 0 auto;
+    }
+</style>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState , useEffrct , useContext , useCallback,useMemo} = React const { produce } = immer const ClickContext = React.createContext(null) class Mine extends React.Component{ constructor(props){ super(props) this.hInput = React.createRef() this.wInput
+        = React.createRef() this.mInput = React.createRef() this.mineCounter = React.createRef() this.timer = React.createRef() this.btnReset = React.createRef() this.timeInterval = null this.state = { boxState:{ height:9, width:9, totalMine:10, }, ontimeState:{
+        isSetMine:false, mineCount:0, boxCount:0, }, mineState:[], time : 0 } //isClick 0:clicked 1: unclick 2:flag } componentDidMount(){ this.createMine() } setMine(mineState){ let col = Math.floor(Math.random() * this.state.boxState.width) let row
+        = Math.floor(Math.random() * this.state.boxState.height) if (mineState[+row][+col].mineContext == '*') this.setMine(mineState) else mineState[+row][+col].mineContext = '*' } setMines(mineState,r,c){ for(var i =0;i
+        <this.state.boxState.totalMine;i++){
+            this.setMine(mineState) } if(r&&c){ if(mineState[r][c].mineContext==='*' ){ this.setMine(mineState) mineState[r][c].mineContext=0 this.setNumber(r,c,mineState) } } return mineState } createMine(){ var height=t his.state.boxState.height var width=t
+            his.state.boxState.width var mineState=[] for(var i=0;i<height;i++){ let mineRow=[ ] for(var j=0;j<width;j++){ let a={ isClick:1,mineContext:0} mineRow[j]=a } mineState[i]=m ineRow } let ontimeState=t his.state.ontimeState ontimeState.isSetMine=f
+            alse ontimeState.mineCount=t his.state.boxState.totalMine ontimeState.boxCount=h eight*width - ontimeState.mineCount this.setState(produce(this.state,draft=>{ draft.time = 0 draft.ontimeState = ontimeState draft.mineState = mineState })) } setNumber(r,c,mineState,h,w) { if (mineState[r][c].mineContext == '*') return true var count = 0 for (var i = r - 1; i
+            <=r + 1; i++) { if (i < 0 || i> h-1) continue for (var j = c - 1; j
+                <=c + 1; j++) { if (j < 0 || j> w-1) continue if (mineState[i][j].mineContext == '*') count++ } } if(count === 0) count="" mineState[r][c].mineContext = count return true } setNumbers(mineState){ var height = this.state.boxState.height var width = this.state.boxState.width
+                    for (var i = 0; i
+                    < height; i++) { for (var j=0 ; j < width; j++) { this.setNumber(i, j,mineState,height,width) } } } clickMine=(r,c)=>{ let mineState let ontimeState = this.state.ontimeState if(this.state.ontimeState.isSetMine){ mineState = this.state.mineState }else{ mineState = this.initMineContext(r,c) ontimeState.isSetMine = true this.timeStart() } var showResultDeep
+                        = (r, c, h, w, s, o)=>{ if (r
+                        < 0 || r> h-1) return true if (c
+                            < 0 || c> w-1) return true if (!s[r][c].isClick) return true var value = s[r][c].mineContext s[r][c].isClick = 0 o.boxCount-- if (value == '*') { return false } else if (value == "") { for(let i = r-1;i
+                                <=r +1;i++){ for(let j=c -1;j<=c
+                                    +1;j++){ if(i==r && j==c ) continue if(!showResultDeep(i, j, h, w, s, o)) return false } } // showResult(r - 1, c - 1,l) // showResult(r - 1, c,l) // showResult(r - 1, c + 1,l) // showResult(r, c - 1,l) // showResult(r,
+                                    c + 1,l) // showResult(r + 1, c - 1,l) // showResult(r + 1, c,l) // showResult(r + 1, c + 1,l) } return true } var showResultWide=( r,c,h,w,s,o)=>{ let value = s[r][c].mineContext let checkList = [[r,c]] while(checkList.length > 0){ let checkListTemp = [] for(let it of checkList){ let r = it[0] let c = it[1] let value = s[r][c].mineContext if (!s[r][c].isClick) {
+                                    continue } s[r][c].isClick = 0 o.boxCount-- if(value === '*'){ return false }else if(value === ''){ for(let i = r-1;i
+                                    <=r +1;i++){ if (i < 0 || i> h-1) continue for(let j = c-1;j
+                                        <=c +1;j++){ if (j < 0 || j> w-1) continue if (i == r && j == c) continue if (s[i][j].isClick) { if(s[i][j].isClick == 2){ o.mineCount++ } checkListTemp.push([i,j]) } } } } } console.log(checkListTemp); checkList = checkListTemp } return true
+                                            } var height = this.state.boxState.height var width = this.state.boxState.width //console.log(showResultWide(r,c,height,width,mineState,ontimeState)); if(!showResultWide(r,c,height,width,mineState,ontimeState)){
+                                            this.showAllResult() this.resetTime() console.log(this.btnReset) this.btnReset.current.classList = "em em-joy" alert('game over') } if(ontimeState.boxCount === 0){ this.showAllResult() this.resetTime() alert('you
+                                            win , Time : ' + this.state.time) } this.setState(produce(this.state,draft=>{ draft.mineState = mineState draft.ontimeState = ontimeState })) } initMine =(e)=>{ let boxState = this.state.boxState let h = this.hInput.current.valueAsNumber
+                                            let w = this.wInput.current.valueAsNumber let m = this.mInput.current.valueAsNumber boxState.height = h?Math.abs(h):9 boxState.width = w?Math.abs(w):9 boxState.totalMine = m?Math.abs(m):10 this.resetTime() this.createMine()
+                                            e.target.blur() this.btnReset.current.classList = "em em-grinning" } initMineContext = (r,c)=>{ let mineState = this.state.mineState this.setMines(mineState,r,c) this.setNumbers(mineState) return mineState }
+                                            rightClick = (r,c,e)=>{ e.preventDefault() let type = this.state.mineState[r][c].isClick let mineCount = this.state.ontimeState.mineCount if(type === 2){ type = 1 mineCount++ }else if(type === 1){ type = 2 mineCount--
+                                            } this.setState(produce(this.state,draft=>{ draft.mineState[r][c].isClick = type draft.ontimeState.mineCount = mineCount })) this.timeStart() } autoFill = (r,c)=>{ let mineState = this.state.mineState if(mineState[r][c].isClick)
+                                            return true let count = 0 let value = mineState[r][c].mineContext let list = [] if (!value) return true var height = this.state.boxState.height var width = this.state.boxState.width for (let i = r - 1; i
+                                            <=r
+                                                + 1; i++) { if (i < 0 || i> height-1) continue for (let j = c - 1; j
+                                                <=c + 1; j++) { if (j < 0 || j> width-1) continue if (mineState[i][j].isClick == 0) continue if (mineState[i][j].isClick == 2) count++ else{ list.push({r:i,c:j}) } } } if(count == value){ list.forEach(it=>{ this.clickMine(it.r,it.c) })
+                                                    }else{ } } showAllResult = ()=>{ let mineState = this.state.mineState mineState.map(its=>{ its.map(it=>{ if(it.isClick === 2) { if(it.mineContext === '*') it.mineContext = "✔" else it.mineContext = "✗"
+                                                    } it.isClick = 0 }) }) this.setState(produce(this.state,draft=>{ draft.mineState = mineState })) } timeStart = ()=>{ if(this.timeInterval){ return true } let time = this.state.time let timer = setInterval(()
+                                                    => { this.setState(produce(this.state,draft=>{ draft.time = ++time })) }, 1000); this.timeInterval = timer } resetTime = ()=>{ if(this.timeInterval){ clearInterval(this.timeInterval) } this.timeInterval
+                                                    = null } cilckMine = { c:this.clickMine, rc:this.rightClick, af:this.autoFill } render(){ return (
+                                                    <div>
+                                                        h:<input ref={this.hInput} type="number" /> w:
+                                                        <input ref={this.wInput} type="number" /> m:
+                                                        <input ref={this.mInput} type="number" />
+                                                        <hr/>
+                                                        <div className="mineState">
+                                                            <div className="mineCount" key="mineCounter" ref={this.mineCounter}>{this.state.ontimeState.mineCount}</div>
+                                                            <button className="mineReset" onClick={this.initMine}>
+                  
+                    <i ref={this.btnReset} className="em em-grinning" ></i>
+                    <i  className="em em-hushed" ></i>
+                  
+                </button>
+                                                            <div className="timer" key="timer" ref={this.timer}>{this.state.time}</div>
+                                                        </div>
+                                                        <ClickContext.Provider value={ this.cilckMine }>
+                                                            <MineList mineState={ this.state.mineState}/>
+                                                        </ClickContext.Provider>
+                                                    </div>
+                                                    ) } } function MineList(props){ return (
+                                                    <div className="mineList">
+                                                        { props.mineState.map( (row,rowIdx)=>
+                                                        <div key={ ''+rowIdx} className="mineRow">
+                                                            { row.map((it,itIdx)=>
+                                                            <MineOneMemo key={rowIdx+ 'x'+itIdx} mineContext={it.mineContext} isClick={it.isClick} row={ rowIdx} col={ itIdx} /> ) }
+                                                        </div>
+                                                        ) }
+                                                    </div>
+                                                    ) } function MineOne(props) { var clickMine = useContext(ClickContext) //const props = useMemo(() =>{return props}, [props.isClick]); return (
+                                                    <div>
+                                                        { !props.isClick?
+                                                        <div className="mineOneClicked" onContextMenu={ preventDefault} onClick={ ()=>{clickMine.af(props.row,props.col)}} > {props.mineContext}
+                                                        </div>:
+
+                                                        <div className={props.isClick==1 ? "mineOne": "mineOne flag"} onClick={ props.isClick==2 ?()=>{}:()=>clickMine.c(props.row,props.col)} onContextMenu = {clickMine.rc.bind(null,props.row,props.col)} >
+                                                        </div>
+                                                        }
+                                                    </div>
+                                                    ) } const preventDefault = (e)=>{ e.preventDefault() } const MineOneMemo = React.memo(MineOne, (prevProps, nextProps) => { //return true if(prevProps.isClick === nextProps.isClick) { //console.log('true') return true } else { //console.log('false') return
+                                                    false } }) class Msg extends React.Component{ constructor(props){ super(props) } render() { ReactDOM.createPortal((
+                                                    <div className="Msg">{props.msg}</div>
+                                                    ),document.body) } } ReactDOM.render(
+                                                    <Mine/>, document.getElementById('root') );
+
+    </script>
+    <!--
+      Note: this page is a great way to try React but it's not suitable for production.
+      It slowly compiles JSX with Babel in the browser and uses a large development build of React.
+
+      Read this section for a production-ready setup with JSX:
+      https://reactjs.org/docs/add-react-to-a-website.html#add-jsx-to-a-project
+
+      In a larger project, you can use an integrated toolchain that includes JSX instead:
+      https://reactjs.org/docs/create-a-new-react-app.html
+
+      You can also use React without JSX, in which case you can remove Babel:
+      https://reactjs.org/docs/react-without-jsx.html
+    -->
+</body>
+
+</html>
