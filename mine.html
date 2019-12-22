@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>Hello Mine</title>
-  <script src="./react.development.js"></script>
-  <script src="./react-dom.development.js"></script>
-  <script src="./immer.umd.js"></script>
+  <script src="./js/react.development.js"></script>
+  <script src="./js/react-dom.development.js"></script>
+  <script src="./js/immer.umd.js"></script>
   <!-- Don't use this in production: -->
-  <script src="./babel.min.js"></script>
+  <script src="./js/babel.min.js"></script>
   <link href="https://emoji-css.afeld.me/emoji.css" rel="stylesheet">
   </head>
 
@@ -114,8 +114,8 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState , useEffrct , useContext , useCallback,useMemo} = React
-    const { produce } = immer
+    const { useState , useEffrct , useContext , useCallback,useMemo} = React;
+    const { produce } = immer;
 
     const ClickContext = React.createContext(null)
 
